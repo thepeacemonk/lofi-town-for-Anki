@@ -144,16 +144,17 @@ class InstructionsDialog(QDialog):
         sc_frame.setProperty("class", "section")
         sc_layout = QVBoxLayout(sc_frame)
         
-        sc_title = QLabel("Shortcuts")
+        sc_title = QLabel("Shortcut")
         sc_title.setProperty("class", "h2")
         sc_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sc_layout.addWidget(sc_title)
         
         sc_text = QLabel()
         sc_text.setProperty("class", "body")
+        sc_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sc_text.setWordWrap(True)
         sc_text.setText(f"""
-        • Open Window: Shift + L
+        <b>Open lofi.town: Shift + L</b>
         """)
         sc_layout.addWidget(sc_text)
         

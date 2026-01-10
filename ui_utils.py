@@ -31,9 +31,9 @@ class LofiInfoDialog(QDialog):
         if is_dark:
             bg_color = "#7D593A"
             text_color = "#F9F7E4"
-            btn_bg = "#B48555"
-            btn_text = "#FFFFFF"
-            btn_hover = "#C49565"
+            btn_bg = "#DCE597" # Accent Green
+            btn_text = "#7D593A" # Brown Text
+            btn_hover = "#ECF5A7"
         else:
             bg_color = "#F9F7E4"
             text_color = "#7D593A"
@@ -92,7 +92,7 @@ class LofiInfoDialog(QDialog):
         layout.addStretch()
         # Helper to load image
         addon_dir = os.path.dirname(__file__)
-        img_path = os.path.join(addon_dir, "assets", "bunny_lofi_town.png")
+        img_path = os.path.join(addon_dir, "assets", "lofi_town_logo.png")
         if os.path.exists(img_path):
             img_label = QLabel()
             
