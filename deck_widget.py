@@ -1,122 +1,92 @@
-from aqt import mw
-from aqt.qt import *
-import os
+"""
+Deck Browser Widget for Lofi Town Add-on
+Displays a 200px by 200px widget with Lofi Town stats on the deck browser.
+"""
 
-def get_widget_html():
-    """Generate the HTML for the deck browser widget."""
-    import base64
+from aqt import mw, gui_hooks
+import aqt.deckbrowser
+import os
+import base64
+
+# Cache for the widget HTML
+cached_html = None
+
+def generate_css():
+    """Generate CSS for the Lofi Town widget."""
     
-    # Get the image as base64
-    addon_dir = os.path.dirname(__file__)
-    image_path = os.path.join(addon_dir, "assets", "bunny_lofi_town.png")
+    # Custom colors for Lofi Town
+    bg_color = "#DCE597"
+    button_color = "#8B9556"
+    button_hover_color = "#372411"
     
-    with open(image_path, "rb") as img_file:
-        image_data = base64.b64encode(img_file.read()).decode('utf-8')
-    
-    image_url = f"data:image/png;base64,{image_data}"
-    
-    # Read the SVG content directly
-    gear_path = os.path.join(addon_dir, "assets", "gear.svg")
-    with open(gear_path, "r", encoding="utf-8") as gear_file:
-        gear_svg = gear_file.read()
-    
-    # Process gear SVG to add styling capabilities
-    # We remove any existing fill and add width/height/transition
-    gear_svg = gear_svg.replace('<svg ', '<svg style="width: 20px; height: 20px; fill: #8B9556; transition: fill 0.3s;" id="gear-icon" ')
-    
-    refresh_path = os.path.join(addon_dir, "assets", "refresh.svg")
-    with open(refresh_path, "r", encoding="utf-8") as refresh_file:
-        refresh_svg = refresh_file.read()
+    return f"""
+        #lofi-widget-container {{
+            position: relative;
+            display: inline-block;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: 6.875px;
+            margin-right: 6.875px;
+            
+        }}
         
-    # Process refresh SVG
-    refresh_svg = refresh_svg.replace('<svg ', '<svg style="width: 20px; height: 20px; fill: #8B9556; transition: fill 0.3s;" id="refresh-icon" ')
-    
-    carrot_path = os.path.join(addon_dir, "assets", "carrot.svg")
-    with open(carrot_path, "r", encoding="utf-8") as carrot_file:
-        carrot_svg = carrot_file.read()
-        
-    # Process carrot SVG
-    carrot_svg = carrot_svg.replace('<svg ', '<svg style="width: 20px; height: 20px; fill: #8B9556; transition: fill 0.3s;" id="carrot-icon" ')
-    
-    html = f"""
-    <div id="lofi-widget" style="
-        width: 200px;
-        height: 200px;
-        background-color: #DCE597;
-        border-radius: 25px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 15px;
-        box-sizing: border-box;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        position: relative;
-    ">
-        <!-- Icon buttons in top right -->
-        <div style="
+        #lofi-widget {{
+            width: 200px;
+            height: 200px;
+            border-radius: 25px;
+            background: {bg_color};
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-sizing: border-box;
+            position: relative;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }}
+
+        #lofi-widget .top-buttons {{
             position: absolute;
             top: 10px;
             right: 10px;
             display: flex;
             flex-direction: column;
             gap: 0px;
-        ">
-            <!-- Gear icon button -->
-            <div role="button" onclick="pycmd('lofi:settings')" style="
-                background-color: transparent;
-                cursor: pointer;
-                padding: 2px;
-                width: 28px;
-                height: 24px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            " onmouseover="document.getElementById('gear-icon').style.fill='#372411'" 
-               onmouseout="document.getElementById('gear-icon').style.fill='#8B9556'">
-                {gear_svg}
-            </div>
-            
-            <!-- Refresh icon button -->
-            <div role="button" onclick="pycmd('lofi:refresh')" style="
-                background-color: transparent;
-                cursor: pointer;
-                padding: 2px;
-                width: 28px;
-                height: 24px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            " onmouseover="document.getElementById('refresh-icon').style.fill='#372411'" 
-               onmouseout="document.getElementById('refresh-icon').style.fill='#8B9556'">
-                {refresh_svg}
-            </div>
-            
-            <!-- Carrot icon button -->
-            <div role="button" onclick="pycmd('lofi:main')" style="
-                background-color: transparent;
-                cursor: pointer;
-                padding: 2px;
-                width: 28px;
-                height: 24px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            " onmouseover="document.getElementById('carrot-icon').style.fill='#372411'" 
-               onmouseout="document.getElementById('carrot-icon').style.fill='#8B9556'">
-                {carrot_svg}
-            </div>
-        </div>
+            z-index: 10;
+        }}
+
+        #lofi-widget .icon-btn {{
+            width: 28px;
+            height: 24px;
+            cursor: pointer;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+        }}
+
+        #lofi-widget .icon-btn svg {{
+            width: 20px; 
+            height: 20px; 
+            fill: {button_color}; 
+            transition: fill 0.3s;
+        }}
+
+        #lofi-widget .icon-btn:hover svg {{
+            fill: {button_hover_color};
+        }}
         
-        <img src="{image_url}" style="
+        #lofi-widget .main-image {{
             width: 100px;
             height: 100px;
             object-fit: contain;
             margin-bottom: 15px;
-        " alt="Lofi Town Bunny">
+        }}
         
-        <button onclick="pycmd('lofi:open')" style="
-            background-color: #8B9556;
+        #lofi-widget .action-btn {{
+            background-color: {button_color};
             color: white;
             border: none;
             border-radius: 20px;
@@ -125,53 +95,149 @@ def get_widget_html():
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s, color 0.3s;
-        " onmouseover="this._bg=this.style.backgroundColor; this._c=this.style.color; this.style.backgroundColor=this._c; this.style.color=this._bg" 
-           onmouseout="this.style.backgroundColor=this._bg; this.style.color=this._c">
+        }}
+        
+        #lofi-widget .action-btn:hover {{
+            background-color: white;
+            color: {button_color};
+        }}
+    """
+
+def get_svg_content(filename):
+    """Read SVG content from assets folder."""
+    addon_dir = os.path.dirname(__file__)
+    path = os.path.join(addon_dir, "assets", filename)
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            # Strip potential <?xml ... ?> and DOCTYPE headers for cleaner embedding
+            # Also remove existing fill attributes or style tags if we want CSS to control it rigidly,
+            # but our CSS selectors targeting 'svg' fill should override attributes.
+            # To be safe, we can remove the <svg ...> tag and wrapper logic if we want, or just return raw.
+            # The reference code returned raw.
+            return content
+    return ""
+
+def get_image_base64(filename):
+    """Read image and return base64 string."""
+    addon_dir = os.path.dirname(__file__)
+    path = os.path.join(addon_dir, "assets", filename)
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode('utf-8')
+    return ""
+
+def generate_html():
+    """Generate HTML for the Lofi Town widget."""
+    
+    # Top Buttons
+    gear_svg = get_svg_content("gear.svg")
+    refresh_svg = get_svg_content("refresh.svg")
+    carrot_svg = get_svg_content("carrot.svg")
+    
+    buttons_html = f"""
+        <div class="top-buttons">
+            <div class="icon-btn" onclick="pycmd('lofi:settings')" title="Settings">
+                {gear_svg}
+            </div>
+            <div class="icon-btn" onclick="pycmd('lofi:refresh')" title="Refresh">
+                {refresh_svg}
+            </div>
+            <div class="icon-btn" onclick="pycmd('lofi:main')" title="Open Web App">
+                {carrot_svg}
+            </div>
+        </div>
+    """
+
+    # Main Image
+    img_b64 = get_image_base64("bunny_lofi_town.png")
+    img_html = ""
+    if img_b64:
+        img_html = f'<img class="main-image" src="data:image/png;base64,{img_b64}" alt="Lofi Town Bunny">'
+
+    # Main Button
+    action_btn = f'''
+        <button class="action-btn" onclick="pycmd('lofi:open')">
             Open lofi.town
         </button>
-    </div>
+    '''
+    
+    return f"""
+        <div id="lofi-widget">
+            {buttons_html}
+            {img_html}
+            {action_btn}
+        </div>
     """
-    return html
 
-def on_deck_browser_will_render_content(deck_browser, content):
-    """Hook to add widget to deck browser."""
-    # Check if widget should be hidden
-    config = mw.addonManager.getConfig(__name__)
-    if config and config.get("hide_widget", False):
-        return  # Don't add widget if hidden
-    
-    widget_html = get_widget_html()
-    
-    # Add the widget to the deck browser content
-    # Insert it at the top of the page
-    content.stats += widget_html
-
-def on_widget_command(handled, cmd, context):
-    """Handle commands from the widget."""
-    if cmd == "lofi:open":
-        from . import show_lofi
-        show_lofi()
-        return True, None
-    elif cmd == "lofi:settings":
+def handle_lofi_commands(handled, message, context):
+    """Handle JS messages from the widget."""
+    if message == "lofi:settings":
         from . import show_settings
         show_settings()
-        return True, None
-    elif cmd == "lofi:main":
+        reset_cache()
+        mw.deckBrowser.refresh()
+        return (True, None)
+    elif message == "lofi:open":
         from . import show_lofi
         show_lofi()
-        return True, None
-    elif cmd == "lofi:refresh":
+        return (True, None)
+    elif message == "lofi:main":
+        from . import show_lofi
+        show_lofi()
+        return (True, None)
+    elif message == "lofi:refresh":
         from .reload_utils import reload_modules
         reload_modules()
-        return True, None
+        return (True, None)
     return handled
+
+def add_widget_to_deck_browser(deck_browser: aqt.deckbrowser.DeckBrowser, 
+                                content: aqt.deckbrowser.DeckBrowserContent):
+    """Appends the Lofi widget to the deck browser's stats area."""
+    global cached_html
+    
+    # Check if widget should be hidden
+    addon_id = mw.addonManager.addonFromModule(__name__)
+    config = mw.addonManager.getConfig(addon_id)
+    if config and config.get("hide_widget", False):
+        return
+
+    # Prevent adding the widget multiple times in the same render
+    if "<div id='lofi-widget-container'>" in content.stats:
+        return
+    
+    if cached_html is None:
+        css = generate_css()
+        html_content = generate_html()
+        cached_html = f"<div id='lofi-widget-container'><style>{css}</style>{html_content}</div>"
+    
+    content.stats += cached_html
+
+def reset_cache(*args, **kwargs):
+    """Clears the cached HTML, forcing a refresh on next view."""
+    global cached_html
+    cached_html = None
+
+def on_theme_change():
+    """Reset cache and refresh deck browser when theme changes."""
+    reset_cache()
+    if mw.state == "deckBrowser":
+        mw.deckBrowser.refresh()
 
 def init_deck_widget():
     """Initialize the deck browser widget."""
-    from aqt import gui_hooks
+    # Register hooks
+    # We should ensure we don't register hooks multiple times on reload
+    # A simple way to avoid duplicates if this module is reloaded is tricky in this context, 
+    # but for now we follow the pattern provided.
+    gui_hooks.deck_browser_will_render_content.append(add_widget_to_deck_browser)
+    gui_hooks.reviewer_will_end.append(reset_cache)
+    gui_hooks.sync_did_finish.append(reset_cache)
+    gui_hooks.theme_did_change.append(on_theme_change)
     
-    # Add widget to deck browser
-    gui_hooks.deck_browser_will_render_content.append(on_deck_browser_will_render_content)
-    
-    # Handle widget commands
-    gui_hooks.webview_did_receive_js_message.append(on_widget_command)
+    # Register command handler if not already done
+    if not hasattr(mw, "_lofi_widget_initialized"):
+        gui_hooks.webview_did_receive_js_message.append(handle_lofi_commands)
+        mw._lofi_widget_initialized = True
+

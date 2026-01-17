@@ -1,1 +1,1 @@
-{"homepage": "", "conflicts": [], "name": "Lofi.Town for Anki (by Peace)", "mod": 1767806132, "min_point_version": 250900, "max_point_version": 250902, "branch_index": 0, "disabled": false, "update_enabled": true, "config": {"always_on_top": false, "show_welcome": true, "hide_widget": false}}
+{"homepage": "", "name": "lofitown for Anki by Peace", "conflicts": [], "mod": 1768047070, "min_point_version": 250900, "max_point_version": 250902, "branch_index": 0, "disabled": false, "config": {"always_on_top": false, "show_welcome": false}, "update_enabled": true}

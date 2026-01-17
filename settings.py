@@ -198,7 +198,7 @@ class LofiSettingsDialog(QDialog):
         report_btn = QPushButton("Report Bug")
         report_btn.setObjectName("reportBtn")
         report_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        report_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/thepeacemonk/lofi-town-anki"))) # Assuming repo change or redirect
+        report_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/thepeacemonk/lofi-town-for-Anki"))) # Assuming repo change or redirect
         report_btn.setFixedSize(120, 36)
         header_layout.addWidget(report_btn)
 
